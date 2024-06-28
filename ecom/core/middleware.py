@@ -10,13 +10,9 @@ class UserSessionMiddleware(MiddlewareMixin):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Process the request
-        response = self.process_request(request)
-        if response:
-            return response
+        # Process the request to get the response
         response = self.get_response(request)
-        
-        # Process the response
+        # After getting the response, process user session data
         self.process_user_session(request)
         return response
 
