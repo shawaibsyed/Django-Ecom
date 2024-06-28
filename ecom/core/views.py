@@ -61,7 +61,7 @@ class AddToCartView(APIView):
 
         try:
             cart_item = CartItem.objects.get(product_id=product_name, cart=cart)
-            cart_item.quantity += quantity
+            cart_item.quantity += int(quantity)
             cart_item.save()
             
         except CartItem.DoesNotExist:
@@ -80,8 +80,6 @@ class RemoveFromCartView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     def delete(self, request, pk):
-        product_name = request.data['product_name']
-        quantity = request.data['quantity']
         try:
             cart = Cart.objects.get(user=request.user)
         except Cart.DoesNotExist:
