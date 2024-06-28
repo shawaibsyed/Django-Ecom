@@ -2,6 +2,31 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import Product, Cart
+import csv 
+from django.http import HttpResponse
+
+def download_order_history(modeladmin, request, queryset):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="order_history.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Username', 'Product Name', 'Category', 'Price', 'Quantity', 'Order ID', 'Order Date'])
+    for user in queryset:
+        order = getattr(user, 'order', None)
+        if order:
+            for order_i in order.all():
+                for item in order_i.order_items.all():
+                    writer.writerow([
+                        user.username,
+                        item.product_id.product_name,
+                        item.product_id.category,
+                        item.product_id.price,
+                        item.quantity,
+                        order_i.id,
+                        order_i.date
+                    ])
+    return response
+
+download_order_history.short_description = "Download User's Order History"
 
 class CartAdmin(admin.ModelAdmin):
     def get_cart_items(self, obj):
@@ -16,6 +41,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ("product_name", "category", "price")
 
 class ReadOnlyUserAdmin(BaseUserAdmin):
+    actions = [download_order_history]
     def has_add_permission(self, request):
         return False
 
@@ -30,8 +56,9 @@ class ReadOnlyUserAdmin(BaseUserAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
-    
+
 admin.site.unregister(User)
 admin.site.register(User, ReadOnlyUserAdmin)
 admin.site.register(Cart, CartAdmin)
 admin.site.register(Product, ProductAdmin)
+

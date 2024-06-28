@@ -25,7 +25,7 @@ class CartItem(models.Model):
         return f"{self.cart} | {self.product_id} | {self.quantity}"
 
 class Order(models.Model):
-    user = models.OneToOneField(User, editable=False, on_delete=models.CASCADE, related_name='order')
+    user = models.ForeignKey(User, editable=False, on_delete=models.CASCADE, related_name='order')
     price = models.FloatField(default=0)
     date = models.DateTimeField(auto_now_add=True)
 

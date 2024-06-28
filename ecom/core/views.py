@@ -7,7 +7,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
 from django.db import models
-from .models import Cart, CartItem, Product
+from .models import Cart, CartItem, Product, OrderItem, Order
 from .serializers import CartItemSerializer, CartSerializer
 
 
@@ -169,5 +169,39 @@ class UpdateCartItemView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         response_data = {
                 "message": "Item successfully updated!"
+            }
+        return Response(response_data)
+    
+
+class CartCheckoutView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        try:
+            cart = Cart.objects.get(user=request.user)
+        except Cart.DoesNotExist:
+            cart = Cart.objects.create(
+                user = request.user
+            )
+        cart.save()
+        order = Order.objects.create(
+            user = request.user
+        )
+        order.save()
+        order_items = []
+        price = 0
+        for item in cart.items.all():
+            order_items.append(OrderItem.objects.create(
+                product_id=item.product_id,
+                quantity=item.quantity,
+                order=order
+                ))
+            price += item.product_id.price * item.quantity
+            order_items[-1].save()
+        order.price = round(price,2)
+        order.save()
+        cart.items.all().delete()
+        response_data = {
+                "message": "Order Placed, Thank You!!"
             }
         return Response(response_data)
