@@ -6,9 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import authenticate
-from django.db import models
 from .models import Cart, CartItem, Product, OrderItem, Order
-from .serializers import CartItemSerializer, CartSerializer
 
 
 class CreateUserView(APIView):
@@ -205,3 +203,4 @@ class CartCheckoutView(APIView):
                 "message": "Order Placed, Thank You!!"
             }
         return Response(response_data)
+    
